@@ -23,7 +23,7 @@ The project aims to provide a fast, responsive, and elegant way to showcase imag
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/galerie_photo.git
+git clone https://github.com/ArnaudBand/galerie_photo.git
 cd galerie_photo
 ````
 
