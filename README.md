@@ -1,6 +1,3 @@
-Here’s a clean, professional **README.md** file template for your Next.js project named **`galerie_photo`**, including setup, installation, and running instructions. It’s written to be suitable for GitHub or any developer onboarding documentation.
-
----
 
 ````markdown
 # 📸 Galerie Photo
