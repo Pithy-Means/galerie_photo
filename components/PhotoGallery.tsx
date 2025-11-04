@@ -411,14 +411,14 @@ const PhotoGallery = () => {
         {/* Header */}
         <div className="mb-16 max-w-3xl">
           <div className="inline-block px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full mb-6">
-            <span className="text-blue-400 text-sm font-medium tracking-wide">PORTFOLIO 2024</span>
+            <span className="text-blue-400 text-sm font-medium tracking-wide">THROUGH THE LENS OF FAITH</span>
           </div>
           <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight">
-            Visual Stories
+            His Marvelous Works
           </h1>
           <p className="text-neutral-400 text-lg leading-relaxed">
-            A curated collection of moments captured through the lens,
-            showcasing the beauty of our world from unique perspectives.
+            &ldquo;The heavens declare the glory of God; the skies proclaim the work of his hands.&rdquo;
+            <span className="block mt-3 text-neutral-500 text-base italic">— Psalm 19:1</span>
           </p>
         </div>
 
