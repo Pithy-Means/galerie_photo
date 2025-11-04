@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ZoomIn, ChevronLeft, ChevronRight, VolumeX, Volume2 } from 'lucide-react';
 import Image from 'next/image';
 
 type GsapLike = {
@@ -27,9 +27,11 @@ const PhotoGallery = () => {
 
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const galleryRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const images: ImageItem[] = [
     {
@@ -227,8 +229,17 @@ const PhotoGallery = () => {
     };
     document.body.appendChild(script);
 
+    // Initialize audio
+    audioRef.current = new Audio('/background_music.mp3'); // Add your music file to public folder
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.3; // 30% volume
+
     return () => {
       document.body.removeChild(script);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
   }, []);
 
@@ -236,6 +247,21 @@ const PhotoGallery = () => {
     if (!isLoaded || !window.gsap) return;
 
     const gsap = window.gsap;
+
+    // Scroll-based music control
+    const handleScroll = () => {
+      if (!audioRef.current) return;
+
+      const scrollPosition = window.scrollY;
+      const scrollThreshold = 100;
+
+      if (scrollPosition > scrollThreshold && !isPlaying) {
+        audioRef.current.play().catch(err => console.log('Audio play failed:', err));
+        setIsPlaying(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
 
     gsap.fromTo(
       itemRefs.current,
@@ -300,7 +326,11 @@ const PhotoGallery = () => {
         });
       });
     });
-  }, [isLoaded]);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isLoaded, isPlaying]);
 
   useEffect(() => {
     if (!isLoaded || !window.gsap || !selectedImage) return;
@@ -405,8 +435,28 @@ const PhotoGallery = () => {
     });
   };
 
+  const toggleMusic = () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(err => console.log('Audio play failed:', err));
+      setIsPlaying(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 py-16 px-4 sm:px-6 lg:px-8">
+      {/* Music Control Button */}
+      <button
+        onClick={toggleMusic}
+        className="fixed top-6 right-6 z-40 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-full p-4 text-white transition-all duration-300 shadow-lg hover:scale-110"
+        aria-label="Toggle music"
+      >
+        {isPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+      </button>
       <div className="max-w-[1600px] mx-auto">
         {/* Header */}
         <div className="mb-16 max-w-3xl">
