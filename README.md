@@ -1,5 +1,4 @@
 
-````markdown
 # 📸 Galerie Photo
 
 A modern photo gallery web application built with **Next.js**, **TypeScript**, and **Tailwind CSS**.  
