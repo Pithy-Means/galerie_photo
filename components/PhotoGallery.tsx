@@ -620,7 +620,7 @@ const PhotoGallery = () => {
       {/* Cinema Mode Overlay - Full Screen Movie Presentation */}
       {isCinemaMode && showCinemaOverlay && (
         <div className="fixed inset-0 z-40 bg-black/98 backdrop-blur-xl">
-          <div ref={cinemaImageRef} className="relative w-full h-full flex items-center justify-center p-8">
+          <div ref={cinemaImageRef} className="relative w-full h-full flex items-center justify-center p-4">
             {/* Animated Background Gradient */}
             <div className="absolute inset-0 bg-gradient-radial from-blue-900/20 via-transparent to-black opacity-50"></div>
 
@@ -633,12 +633,12 @@ const PhotoGallery = () => {
             {/* Main Image Container */}
             <div className="relative max-w-6xl w-full h-full flex flex-col items-center justify-center">
               {/* Image with Cinematic Frame */}
-              <div className="cinema-img relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10">
+              <div className="cinema-img relative w-full h-full aspect-video rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10">
                 <Image
                   src={currentImage.url}
                   alt={currentImage.title}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   priority
                 />
 
@@ -661,9 +661,9 @@ const PhotoGallery = () => {
               </div>
 
               {/* Title - Bottom Center with Elegant Typography */}
-              <div className="cinema-title absolute bottom-20 left-1/2 transform -translate-x-1/2 w-full max-w-xl px-2">
-                <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent backdrop-blur-xl rounded-3xl p-10 border-t-2 border-white/20 shadow-2xl">
-                  <h2 className="text-white text-xl md:text-3xl font-bold text-center tracking-tight leading-tight drop-shadow-2xl">
+              <div className="cinema-title absolute bottom-20 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-2">
+                <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent backdrop-blur-lg rounded-xl p-6 border-t-2 border-white/20 shadow-2xl">
+                  <h2 className="text-white text-lg md:text-xl font-bold text-center tracking-tight leading-tight drop-shadow-xl">
                     {currentImage.title}
                   </h2>
 
