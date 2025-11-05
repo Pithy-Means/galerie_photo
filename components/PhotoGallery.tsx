@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { X, ZoomIn, ChevronLeft, ChevronRight, VolumeX, Volume2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, VolumeX, Volume2, Play, Pause } from 'lucide-react';
 import Image from 'next/image';
 
 type GsapLike = {
   fromTo: (targets: unknown, fromVars: unknown, toVars: unknown) => unknown;
   to: (targets: unknown, vars: unknown) => unknown;
   from?: (targets: unknown, vars: unknown) => unknown;
+  set?: (targets: unknown, vars: unknown) => unknown | undefined;
 };
 
 declare global {
@@ -28,10 +30,15 @@ const PhotoGallery = () => {
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isCinemaMode, setIsCinemaMode] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showCinemaOverlay, setShowCinemaOverlay] = useState<boolean>(false);
   const galleryRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const cinemaIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const cinemaImageRef = useRef<HTMLDivElement | null>(null);
 
   const images: ImageItem[] = [
     {
@@ -229,10 +236,9 @@ const PhotoGallery = () => {
     };
     document.body.appendChild(script);
 
-    // Initialize audio
-    audioRef.current = new Audio('/background_music.mp3'); // Add your music file to public folder
+    audioRef.current = new Audio('/background_music.mp3');
     audioRef.current.loop = true;
-    audioRef.current.volume = 0.3; // 30% volume
+    audioRef.current.volume = 0.3;
 
     return () => {
       document.body.removeChild(script);
@@ -240,28 +246,149 @@ const PhotoGallery = () => {
         audioRef.current.pause();
         audioRef.current = null;
       }
+      if (cinemaIntervalRef.current) {
+        clearInterval(cinemaIntervalRef.current);
+      }
     };
   }, []);
 
+  // Cinema mode with advanced animations
+  useEffect(() => {
+    if (!isCinemaMode || !isPlaying || !window.gsap) {
+      if (cinemaIntervalRef.current) {
+        clearInterval(cinemaIntervalRef.current);
+        cinemaIntervalRef.current = null;
+      }
+      // schedule the state update asynchronously to avoid cascading renders
+      Promise.resolve().then(() => setShowCinemaOverlay(false));
+      return;
+    }
+
+    const gsap = window.gsap;
+
+    const animateCinemaImage = () => {
+      setShowCinemaOverlay(true);
+
+      const cinemaContainer = cinemaImageRef.current;
+      if (!cinemaContainer) return;
+
+      const img = cinemaContainer.querySelector('.cinema-img');
+      const titleEl = cinemaContainer.querySelector('.cinema-title');
+      const categoryEl = cinemaContainer.querySelector('.cinema-category');
+      const overlay = cinemaContainer.querySelector('.cinema-overlay');
+
+      // Reset for new animation (guard set in case the method is optional)
+      if (typeof gsap.set === 'function') {
+        gsap.set([img, titleEl, categoryEl], { clearProps: 'all' });
+      }
+
+      // Entrance Animation - Image zooms from center with rotation
+      gsap.fromTo(img,
+        {
+          scale: 0.3,
+          rotation: -15,
+          opacity: 0,
+          filter: 'blur(20px) brightness(0.5)'
+        },
+        {
+          scale: 1,
+          rotation: 0,
+          opacity: 1,
+          filter: 'blur(0px) brightness(1)',
+          duration: 1.2,
+          ease: 'power3.out'
+        }
+      );
+
+      // Category badge slides in from top
+      gsap.fromTo(categoryEl,
+        {
+          y: -100,
+          opacity: 0,
+          scale: 0.5
+        },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.8,
+          delay: 0.5,
+          ease: 'back.out(1.7)'
+        }
+      );
+
+      // Title slides in from bottom with elegant fade
+      gsap.fromTo(titleEl,
+        {
+          y: 100,
+          opacity: 0,
+          scale: 0.9
+        },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.9,
+          delay: 0.7,
+          ease: 'power3.out'
+        }
+      );
+
+      // Overlay fade in
+      gsap.fromTo(overlay,
+        {
+          opacity: 0
+        },
+        {
+          opacity: 1,
+          duration: 0.6,
+          delay: 0.3
+        }
+      );
+
+      // Continuous subtle animations while displaying
+      gsap.to(img, {
+        scale: 1.05,
+        duration: 3,
+        delay: 1.2,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: 1
+      });
+
+      // Exit animation before next image
+      setTimeout(() => {
+        gsap.to([img, titleEl, categoryEl, overlay], {
+          opacity: 0,
+          scale: 0.95,
+          filter: 'blur(10px)',
+          duration: 0.6,
+          ease: 'power2.in',
+          onComplete: () => {
+            setShowCinemaOverlay(false);
+          }
+        });
+      }, 5400);
+    };
+
+    // Start animation immediately when currentImageIndex changes
+    animateCinemaImage();
+
+    // Auto-advance every 6 seconds
+    cinemaIntervalRef.current = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 6000);
+
+    return () => {
+      if (cinemaIntervalRef.current) {
+        clearInterval(cinemaIntervalRef.current);
+      }
+    };
+  }, [isCinemaMode, isPlaying, currentImageIndex, images.length]);
   useEffect(() => {
     if (!isLoaded || !window.gsap) return;
 
     const gsap = window.gsap;
-
-    // Scroll-based music control
-    const handleScroll = () => {
-      if (!audioRef.current) return;
-
-      const scrollPosition = window.scrollY;
-      const scrollThreshold = 100;
-
-      if (scrollPosition > scrollThreshold && !isPlaying) {
-        audioRef.current.play().catch(err => console.log('Audio play failed:', err));
-        setIsPlaying(true);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
 
     gsap.fromTo(
       itemRefs.current,
@@ -289,6 +416,8 @@ const PhotoGallery = () => {
       const content = item.querySelector('.content');
 
       item.addEventListener('mouseenter', () => {
+        if (isCinemaMode) return;
+
         gsap.to(img, {
           scale: 1.05,
           duration: 0.7,
@@ -308,6 +437,8 @@ const PhotoGallery = () => {
       });
 
       item.addEventListener('mouseleave', () => {
+        if (isCinemaMode) return;
+
         gsap.to(img, {
           scale: 1,
           duration: 0.7,
@@ -326,11 +457,7 @@ const PhotoGallery = () => {
         });
       });
     });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isLoaded, isPlaying]);
+  }, [isLoaded, isCinemaMode]);
 
   useEffect(() => {
     if (!isLoaded || !window.gsap || !selectedImage) return;
@@ -373,6 +500,7 @@ const PhotoGallery = () => {
   }, [selectedImage, isLoaded]);
 
   const handleImageClick = (image: ImageItem) => {
+    if (isCinemaMode) return;
     setSelectedImage(image);
   };
 
@@ -441,23 +569,129 @@ const PhotoGallery = () => {
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
+      setIsCinemaMode(false);
     } else {
       audioRef.current.play().catch(err => console.log('Audio play failed:', err));
       setIsPlaying(true);
     }
   };
 
+  const toggleCinemaMode = () => {
+    if (!isPlaying && !isCinemaMode) {
+      if (audioRef.current) {
+        audioRef.current.play().catch(err => console.log('Audio play failed:', err));
+        setIsPlaying(true);
+      }
+      setIsCinemaMode(true);
+      setCurrentImageIndex(0);
+    } else {
+      setIsCinemaMode(!isCinemaMode);
+      if (!isCinemaMode) {
+        setCurrentImageIndex(0);
+      }
+    }
+  };
+
+  const currentImage = images[currentImageIndex];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 py-16 px-4 sm:px-6 lg:px-8">
-      {/* Music Control Button */}
-      <button
-        onClick={toggleMusic}
-        className="fixed top-6 right-6 z-40 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-full p-4 text-white transition-all duration-300 shadow-lg hover:scale-110"
-        aria-label="Toggle music"
-      >
-        {isPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-      </button>
-      <div className="max-w-[1600px] mx-auto">
+      {/* Control Buttons */}
+      <div className="fixed top-6 right-6 z-50 flex gap-3">
+        <button
+          onClick={toggleMusic}
+          className="bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-full p-4 text-white transition-all duration-300 shadow-lg hover:scale-110"
+          aria-label="Toggle music"
+        >
+          {isPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+        </button>
+        <button
+          onClick={toggleCinemaMode}
+          className={`backdrop-blur-md border rounded-full p-4 text-white transition-all duration-300 shadow-lg hover:scale-110 ${isCinemaMode
+            ? 'bg-blue-500/20 border-blue-500/30 hover:bg-blue-500/30'
+            : 'bg-white/5 hover:bg-white/10 border-white/10'
+            }`}
+          aria-label="Toggle cinema mode"
+        >
+          {isCinemaMode ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Cinema Mode Overlay - Full Screen Movie Presentation */}
+      {isCinemaMode && showCinemaOverlay && (
+        <div className="fixed inset-0 z-40 bg-black/98 backdrop-blur-xl">
+          <div ref={cinemaImageRef} className="relative w-full h-full flex items-center justify-center p-8">
+            {/* Animated Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-radial from-blue-900/20 via-transparent to-black opacity-50"></div>
+
+            {/* Decorative Light Rays */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute top-0 left-1/4 w-1 h-full bg-gradient-to-b from-blue-500/30 via-transparent to-transparent transform -skew-x-12 blur-sm"></div>
+              <div className="absolute top-0 right-1/4 w-1 h-full bg-gradient-to-b from-purple-500/30 via-transparent to-transparent transform skew-x-12 blur-sm"></div>
+            </div>
+
+            {/* Main Image Container */}
+            <div className="relative max-w-6xl w-full h-full flex flex-col items-center justify-center">
+              {/* Image with Cinematic Frame */}
+              <div className="cinema-img relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10">
+                <Image
+                  src={currentImage.url}
+                  alt={currentImage.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+
+                {/* Vignette Effect */}
+                <div className="cinema-overlay absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-black/60 pointer-events-none"></div>
+
+                {/* Film Grain Texture */}
+                <div className="absolute inset-0 opacity-5 pointer-events-none"
+                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' /%3E%3C/svg%3E")' }}>
+                </div>
+              </div>
+
+              {/* Category Badge - Top Center */}
+              <div className="cinema-category absolute top-20 left-1/2 transform -translate-x-1/2">
+                <div className="px-4 py-2 bg-gradient-to-r from-blue-500/90 to-purple-500/90 backdrop-blur-md rounded-full border-2 border-white/30 shadow-2xl">
+                  <span className="text-white text-xl font-bold tracking-widest uppercase">
+                    {currentImage.category}
+                  </span>
+                </div>
+              </div>
+
+              {/* Title - Bottom Center with Elegant Typography */}
+              <div className="cinema-title absolute bottom-20 left-1/2 transform -translate-x-1/2 w-full max-w-xl px-2">
+                <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent backdrop-blur-xl rounded-3xl p-10 border-t-2 border-white/20 shadow-2xl">
+                  <h2 className="text-white text-xl md:text-3xl font-bold text-center tracking-tight leading-tight drop-shadow-2xl">
+                    {currentImage.title}
+                  </h2>
+
+                  {/* Progress Bar */}
+                  <div className="mt-8 w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-progress"
+                      style={{ animation: 'progress 6s linear' }}>
+                    </div>
+                  </div>
+
+                  {/* Image Counter */}
+                  <p className="text-white/60 text-center mt-4 text-lg font-medium tracking-wider">
+                    {currentImageIndex + 1} of {images.length}
+                  </p>
+                </div>
+              </div>
+
+              {/* Corner Ornaments */}
+              <div className="absolute top-12 left-12 w-16 h-16 border-l-4 border-t-4 border-blue-500/50 rounded-tl-lg"></div>
+              <div className="absolute top-12 right-12 w-16 h-16 border-r-4 border-t-4 border-purple-500/50 rounded-tr-lg"></div>
+              <div className="absolute bottom-12 left-12 w-16 h-16 border-l-4 border-b-4 border-blue-500/50 rounded-bl-lg"></div>
+              <div className="absolute bottom-12 right-12 w-16 h-16 border-r-4 border-b-4 border-purple-500/50 rounded-br-lg"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={`max-w-[1600px] mx-auto transition-opacity duration-500 ${isCinemaMode ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
         {/* Header */}
         <div className="mb-16 max-w-3xl">
           <div className="inline-block px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full mb-6">
@@ -483,7 +717,7 @@ const PhotoGallery = () => {
               ref={el => {
                 itemRefs.current[index] = el;
               }}
-              className={`relative group cursor-pointer rounded-xl overflow-hidden shadow-xl ${image.span} bg-neutral-900`}
+              className={`relative group cursor-pointer rounded-xl overflow-hidden shadow-xl ${image.span} bg-neutral-900 transition-all duration-500`}
               onClick={() => handleImageClick(image)}
             >
               <Image
@@ -493,7 +727,6 @@ const PhotoGallery = () => {
                 className="object-cover transition-transform duration-700"
               />
 
-              {/* Overlay */}
               <div className="overlay absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 transition-opacity duration-400">
                 <div className="content absolute bottom-0 left-0 right-0 p-6 opacity-0 translate-y-5">
                   <span className="inline-block px-2.5 py-1 bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-medium rounded-md mb-3 tracking-wide">
@@ -502,10 +735,6 @@ const PhotoGallery = () => {
                   <h3 className="text-white text-xl md:text-2xl font-semibold mb-2 tracking-tight">
                     {image.title}
                   </h3>
-                  <div className="flex items-center text-neutral-300">
-                    <ZoomIn className="w-4 h-4 mr-2" />
-                    <span className="text-sm">View full size</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -516,7 +745,6 @@ const PhotoGallery = () => {
         {selectedImage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/97 p-4 backdrop-blur-sm">
             <div ref={modalRef} className="relative max-w-7xl w-full">
-              {/* Close Button */}
               <button
                 onClick={handleCloseModal}
                 className="absolute -top-16 right-0 text-white/80 hover:text-white transition-colors duration-200 z-10 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-full p-3"
@@ -524,7 +752,6 @@ const PhotoGallery = () => {
                 <X className="w-6 h-6" />
               </button>
 
-              {/* Navigation Buttons */}
               <button
                 onClick={() => navigateImage('prev')}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors duration-200 bg-white/5 hover:bg-white/10 rounded-full p-4 backdrop-blur-md z-10 border border-white/10"
@@ -538,7 +765,6 @@ const PhotoGallery = () => {
                 <ChevronRight className="w-6 h-6" />
               </button>
 
-              {/* Image */}
               <div className="bg-neutral-900/50 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                 <div className="relative w-full h-[70vh]">
                   <Image
