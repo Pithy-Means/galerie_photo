@@ -25,6 +25,7 @@ const PhotoGallery = () => {
     title: string;
     category: string;
     span: string;
+    verse: string;
   }
 
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
@@ -43,187 +44,233 @@ const PhotoGallery = () => {
   const images: ImageItem[] = [
     {
       id: 1, url: '/DSC_5606.jpg',
-      title: 'His Mighty Mountains', category: 'Creation', span: 'row-span-2'
+      title: 'His Mighty Mountains', category: 'Creation', span: 'row-span-2',
+      verse: 'I thank my God every time I remember you. - Philippians 1:3'
     },
     {
       id: 2, url: '/DSC_5660.jpg',
-      title: 'City of Refuge', category: 'Urban Life', span: 'col-span-2'
+      title: 'City of Refuge', category: 'Urban Life', span: 'col-span-2',
+      verse: 'We always thank God for all of you. - 1 Thessalonians 1:2'
     },
     {
       id: 3, url: '/DSC_5584.jpg',
-      title: 'Paths of Righteousness', category: 'Creation', span: ''
+      title: 'Paths of Righteousness', category: 'Creation', span: '',
+      verse: 'May the grace of the Lord Jesus Christ be with you all. - 2 Corinthians 13:14'
     },
     {
       id: 4, url: '/DSC_5588.jpg',
-      title: 'Day Breaking Forth', category: 'Creation', span: ''
+      title: 'Day Breaking Forth', category: 'Creation', span: '',
+      verse: 'The Lord bless you and keep you. - Numbers 6:24'
     },
     {
       id: 5, url: '/DSC_5559.jpg',
-      title: 'Wilderness Journey', category: 'Landscape', span: 'col-span-2 row-span-2'
+      title: 'Wilderness Journey', category: 'Landscape', span: 'col-span-2 row-span-2',
+      verse: 'How good and pleasant it is when God\'s people live together in unity! - Psalm 133:1'
     },
     {
       id: 6, url: '/DSC_5592.jpg',
-      title: 'Still Waters', category: 'Creation', span: ''
+      title: 'Still Waters', category: 'Creation', span: '',
+      verse: 'I thank God for your partnership in the gospel. - Philippians 1:5'
     },
     {
       id: 7, url: '/DSC_5597.jpg',
-      title: 'Valley of Vision', category: 'Landscape', span: 'row-span-2'
+      title: 'Valley of Vision', category: 'Landscape', span: 'row-span-2',
+      verse: 'Give thanks to the Lord, for he is good. - Psalm 107:1'
     },
     {
       id: 8, url: '/DSC_5555.jpg',
-      title: 'Waves of Mercy', category: 'Creation', span: ''
+      title: 'Waves of Mercy', category: 'Creation', span: '',
+      verse: 'May the Lord make his face shine on you. - Numbers 6:25'
     },
     {
       id: 9, url: '/DSC_5633.jpg',
-      title: 'Heavens Declare', category: 'Heavens', span: 'col-span-2'
+      title: 'Heavens Declare', category: 'Heavens', span: 'col-span-2',
+      verse: 'I always thank my God for you because of his grace. - 1 Corinthians 1:4'
     },
     {
       id: 10, url: '/DSC_5642.jpg',
-      title: 'Gates of the City', category: 'Urban Life', span: ''
+      title: 'Gates of the City', category: 'Urban Life', span: '',
+      verse: 'Thanks be to God for his indescribable gift! - 2 Corinthians 9:15'
     },
     {
       id: 11, url: '/DSC_5645.jpg',
-      title: 'Mountain of the Lord', category: 'Creation', span: ''
+      title: 'Mountain of the Lord', category: 'Creation', span: '',
+      verse: 'We ought always to thank God for you. - 2 Thessalonians 1:3'
     },
     {
       id: 12, url: '/DSC_5650.jpg',
-      title: 'Land of Promise', category: 'Creation', span: 'col-span-2 row-span-2'
+      title: 'Land of Promise', category: 'Creation', span: 'col-span-2 row-span-2',
+      verse: 'May the fellowship of the Holy Spirit be with you all. - 2 Corinthians 13:14'
     },
     {
       id: 13, url: '/DSC_5655.jpg',
-      title: 'Seasons of Change', category: 'Creation', span: ''
+      title: 'Seasons of Change', category: 'Creation', span: '',
+      verse: 'Be devoted to one another in love. - Romans 12:10'
     },
     {
       id: 14, url: '/DSC_5579.jpg',
-      title: 'Firmament Above', category: 'Heavens', span: ''
+      title: 'Firmament Above', category: 'Heavens', span: '',
+      verse: 'Grace and peace to you from God our Father. - Romans 1:7'
     },
     {
       id: 15, url: '/DSC_6231.jpg',
-      title: 'Streets of Jerusalem', category: 'Urban Life', span: 'row-span-2'
+      title: 'Streets of Jerusalem', category: 'Urban Life', span: 'row-span-2',
+      verse: 'I thank God whom I serve with a clear conscience. - 2 Timothy 1:3'
     },
     {
       id: 16, url: '/DSC_6278.jpg',
-      title: 'Hills of Heritage', category: 'Landscape', span: ''
+      title: 'Hills of Heritage', category: 'Landscape', span: '',
+      verse: 'May the Lord turn his face toward you and give you peace. - Numbers 6:26'
     },
     {
       id: 17, url: '/DSC_6233.jpg',
-      title: 'Garden of Eden', category: 'Creation', span: 'col-span-2 row-span-2'
+      title: 'Garden of Eden', category: 'Creation', span: 'col-span-2 row-span-2',
+      verse: 'Let us not give up meeting together, but encourage one another. - Hebrews 10:25'
     },
     {
       id: 18, url: '/DSC_6237.jpg',
-      title: 'Field of Blessings', category: 'Creation', span: ''
+      title: 'Field of Blessings', category: 'Creation', span: '',
+      verse: 'Your love has given me great joy and encouragement. - Philemon 1:7'
     },
     {
       id: 19, url: '/DSC_6239.jpg',
-      title: 'Rock of Ages', category: 'Creation', span: ''
+      title: 'Rock of Ages', category: 'Creation', span: '',
+      verse: 'I thank God for you because your faith is growing. - 2 Thessalonians 1:3'
     },
     {
       id: 20, url: '/DSC_6266.jpg',
-      title: 'Place of Rest', category: 'Urban Life', span: ''
+      title: 'Place of Rest', category: 'Urban Life', span: '',
+      verse: 'May God give you peace at all times and in every way. - 2 Thessalonians 3:16'
     },
     {
       id: 21, url: '/DSC_6197.jpg',
-      title: 'Cloud of Glory', category: 'Creation', span: 'col-span-2 row-span-2'
+      title: 'Cloud of Glory', category: 'Creation', span: 'col-span-2 row-span-2',
+      verse: 'I always pray with joy because of your partnership. - Philippians 1:4-5'
     },
     {
       id: 22, url: '/DSC_6201.jpg',
-      title: 'Sunrise Serenity', category: 'Creation', span: ''
+      title: 'Sunrise Serenity', category: 'Creation', span: '',
+      verse: 'May you be filled with the fruit of righteousness. - Philippians 1:11'
     },
     {
       id: 23, url: '/DSC_6203.jpg',
-      title: 'Twilight Tranquility', category: 'Creation', span: ''
+      title: 'Twilight Tranquility', category: 'Creation', span: '',
+      verse: 'May the God of hope fill you with all joy and peace. - Romans 15:13'
     },
     {
       id: 24, url: '/DSC_6187.jpg',
-      title: 'Dawn of Hope', category: 'Creation', span: 'col-span-2'
+      title: 'Dawn of Hope', category: 'Creation', span: 'col-span-2',
+      verse: 'I have not stopped giving thanks for you. - Ephesians 1:16'
     },
     {
       id: 25, url: '/DSC_6203.jpg',
-      title: 'Evening Embrace', category: 'Creation', span: ''
+      title: 'Evening Embrace', category: 'Creation', span: '',
+      verse: 'May the peace of God guard your hearts and minds. - Philippians 4:7'
     },
     {
       id: 26, url: '/DSC_6158.jpg',
-      title: 'Majestic Peaks', category: 'Landscape', span: 'row-span-2'
+      title: 'Majestic Peaks', category: 'Landscape', span: 'row-span-2',
+      verse: 'Your presence has refreshed my spirit. - 1 Corinthians 16:18'
     },
     {
       id: 27, url: '/DSC_6207.jpg',
-      title: 'River of Life', category: 'Creation', span: ''
+      title: 'River of Life', category: 'Creation', span: '',
+      verse: 'May you abound in hope by the power of the Holy Spirit. - Romans 15:13'
     },
     {
       id: 28, url: '/DSC_6176.jpg',
-      title: 'Valley of Dreams', category: 'Landscape', span: ''
+      title: 'Valley of Dreams', category: 'Landscape', span: '',
+      verse: 'You are in my heart and I am grateful for you. - Philippians 1:7'
     },
     {
       id: 29, url: '/DSC_6178.jpg',
-      title: 'Canyon of Wonders', category: 'Landscape', span: ''
+      title: 'Canyon of Wonders', category: 'Landscape', span: '',
+      verse: 'May grace and peace be yours in abundance. - 1 Peter 1:2'
     },
     {
       id: 30, url: '/DSC_6174.jpg',
-      title: 'Ocean of Tranquility', category: 'Creation', span: ''
+      title: 'Ocean of Tranquility', category: 'Creation', span: '',
+      verse: 'I thank God for your obedience and faithfulness. - Romans 16:19'
     },
     {
       id: 31, url: '/DSC_6163.jpg',
-      title: 'Forest of Whispers', category: 'Creation', span: 'col-span-2 row-span-2'
+      title: 'Forest of Whispers', category: 'Creation', span: 'col-span-2 row-span-2',
+      verse: 'May you be strengthened with all power according to his might. - Colossians 1:11'
     },
     {
       id: 32, url: '/DSC_6167.jpg',
-      title: 'Meadow of Light', category: 'Creation', span: ''
+      title: 'Meadow of Light', category: 'Creation', span: '',
+      verse: 'May the Lord direct your hearts into God\'s love. - 2 Thessalonians 3:5'
     },
     {
       id: 33, url: '/DSC_6181.jpg',
-      title: 'Desert of Solitude', category: 'Landscape', span: ''
+      title: 'Desert of Solitude', category: 'Landscape', span: '',
+      verse: 'I rejoice greatly in the Lord because of you. - Philippians 4:10'
     },
     {
       id: 34, url: '/DSC_6183.jpg',
-      title: 'Island of Peace', category: 'Creation', span: ''
+      title: 'Island of Peace', category: 'Creation', span: '',
+      verse: 'May the Lord of peace himself give you peace. - 2 Thessalonians 3:16'
     },
     {
       id: 35, url: '/DSC_6191.jpg',
-      title: 'Glacier of Time', category: 'Landscape', span: 'col-span-2'
+      title: 'Glacier of Time', category: 'Landscape', span: 'col-span-2',
+      verse: 'I thank God that I can have complete confidence in you. - 2 Corinthians 7:16'
     },
     {
       id: 36, url: '/DSC_6108.jpg',
-      title: 'Harbor of Hope', category: 'Urban Life', span: 'row-span-2'
+      title: 'Harbor of Hope', category: 'Urban Life', span: 'row-span-2',
+      verse: 'You have been a blessing and encouragement to me. - Colossians 4:11'
     },
     {
       id: 37, url: '/DSC_6124.jpg',
-      title: 'Bridge to Eternity', category: 'Urban Life', span: ''
+      title: 'Bridge to Eternity', category: 'Urban Life', span: '',
+      verse: 'May God\'s love be with all of you. - 1 Corinthians 16:24'
     },
     {
       id: 38, url: '/DSC_6139.jpg',
-      title: 'Cave of Wonders', category: 'Landscape', span: ''
+      title: 'Cave of Wonders', category: 'Landscape', span: '',
+      verse: 'I give thanks to God always for you. - 1 Corinthians 1:4'
     },
     {
       id: 39, url: '/DSC_6142.jpg',
-      title: 'Cliff of Faith', category: 'Landscape', span: ''
+      title: 'Cliff of Faith', category: 'Landscape', span: '',
+      verse: 'May you experience the love of Christ. - Ephesians 3:19'
     },
     {
       id: 40, url: '/DSC_6146.jpg',
-      title: 'Prairie of Dreams', category: 'Creation', span: 'row-span-2'
+      title: 'Prairie of Dreams', category: 'Creation', span: 'row-span-2',
+      verse: 'Thank you for sharing in my troubles. - Philippians 4:14'
     },
     {
       id: 41, url: '/DSC_6099.jpg',
-      title: 'Bay of Tranquility', category: 'Creation', span: 'col-span-2 row-span-2'
+      title: 'Bay of Tranquility', category: 'Creation', span: 'col-span-2 row-span-2',
+      verse: 'I always remember you in my prayers with thanksgiving. - Colossians 1:3'
     },
     {
       id: 42, url: '/DSC_5645.jpg',
-      title: 'Harbor Lights', category: 'Urban Life', span: ''
+      title: 'Harbor Lights', category: 'Urban Life', span: '',
+      verse: 'May God bless you and make you a blessing. - Genesis 12:2'
     },
     {
       id: 43, url: '/DSC_6104.jpg',
-      title: 'Sunset Boulevard', category: 'Urban Life', span: ''
+      title: 'Sunset Boulevard', category: 'Urban Life', span: '',
+      verse: 'Your presence brings me joy and comfort. - Philemon 1:7'
     },
     {
       id: 44, url: '/DSC_5693.jpg',
-      title: 'Mountain Majesty', category: 'Landscape', span: 'col-span-2 row-span-2'
+      title: 'Mountain Majesty', category: 'Landscape', span: 'col-span-2 row-span-2',
+      verse: 'I thank God for your generous giving and sharing. - Philippians 4:15-16'
     },
     {
       id: 45, url: '/DSC_5680.jpg',
-      title: 'River Reflections', category: 'Creation', span: ''
+      title: 'River Reflections', category: 'Creation', span: '',
+      verse: 'May you overflow with hope and power. - Romans 15:13'
     },
     {
       id: 46, url: '/DSC_5666.jpg',
-      title: 'City Lights', category: 'Urban Life', span: ''
+      title: 'City Lights', category: 'Urban Life', span: '',
+      verse: 'I thank God for your faithful service. - 1 Thessalonians 1:3'
     }
   ];
 
@@ -651,15 +698,6 @@ const PhotoGallery = () => {
                 </div>
               </div>
 
-              {/* Category Badge - Top Center */}
-              <div className="cinema-category absolute top-20 left-1/2 transform -translate-x-1/2">
-                <div className="px-4 py-2 bg-gradient-to-r from-blue-500/90 to-purple-500/90 backdrop-blur-md rounded-full border-2 border-white/30 shadow-2xl">
-                  <span className="text-white text-xl font-bold tracking-widest uppercase">
-                    {currentImage.category}
-                  </span>
-                </div>
-              </div>
-
               {/* Title - Bottom Center with Elegant Typography */}
               <div className="cinema-title absolute bottom-20 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-2">
                 <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent backdrop-blur-lg rounded-xl p-6 border-t-2 border-white/20 shadow-2xl">
@@ -676,7 +714,7 @@ const PhotoGallery = () => {
 
                   {/* Image Counter */}
                   <p className="text-white/60 text-center mt-4 text-lg font-medium tracking-wider">
-                    {currentImageIndex + 1} of {images.length}
+                    {currentImage.verse}
                   </p>
                 </div>
               </div>
