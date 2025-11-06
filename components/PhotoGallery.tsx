@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from 'react';
 import { X, ChevronLeft, ChevronRight, VolumeX, Volume2, Play, Pause } from 'lucide-react';
-import Image from 'next/image';
 
 type GsapLike = {
   fromTo: (targets: unknown, fromVars: unknown, toVars: unknown) => unknown;
@@ -40,6 +39,8 @@ const PhotoGallery = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cinemaIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const cinemaImageRef = useRef<HTMLDivElement | null>(null);
+  const flowerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const thanksRef = useRef<HTMLDivElement | null>(null);
 
   const images: ImageItem[] = [
     {
@@ -296,8 +297,115 @@ const PhotoGallery = () => {
       if (cinemaIntervalRef.current) {
         clearInterval(cinemaIntervalRef.current);
       }
+      if (flowerIntervalRef.current) {
+        clearInterval(flowerIntervalRef.current);
+      }
     };
   }, []);
+
+  // Raining Flowers Animation
+  useEffect(() => {
+    if (!isLoaded || !window.gsap) return;
+
+    const gsap = window.gsap;
+    const container = thanksRef.current;
+    if (!container) return;
+
+    const flowerEmojis = ['🌸', '🌺', '🌼', '🌻', '🌷', '🌹', '💐', '🏵️', '💮', '🌾', '🥀', '🪷'];
+
+    const createFlower = () => {
+      const flower = document.createElement('div');
+      const emoji = flowerEmojis[Math.floor(Math.random() * flowerEmojis.length)];
+
+      flower.textContent = emoji;
+      flower.className = 'absolute pointer-events-none';
+      flower.style.fontSize = `${Math.random() * 30 + 25}px`;
+      flower.style.left = `${Math.random() * 100}%`;
+      flower.style.top = '-80px';
+      flower.style.opacity = '0';
+      flower.style.filter = 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))';
+
+      container.appendChild(flower);
+
+      const duration = Math.random() * 4 + 5;
+      const xOffset = (Math.random() - 0.5) * 200;
+      const rotation = Math.random() * 720 - 360;
+
+      // Main falling animation with physics
+      gsap.to(flower, {
+        y: container.clientHeight + 120,
+        x: xOffset,
+        rotation: rotation,
+        opacity: 1,
+        duration: duration,
+        ease: 'none',
+        onComplete: () => {
+          flower.remove();
+        }
+      });
+
+      // Swaying motion for realistic effect
+      gsap.to(flower, {
+        x: `+=${(Math.random() - 0.5) * 150}`,
+        duration: duration * 0.3,
+        repeat: Math.floor(duration / 0.3),
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+      // Subtle scale animation
+      gsap.to(flower, {
+        scale: Math.random() * 0.3 + 0.9,
+        duration: duration * 0.4,
+        repeat: Math.floor(duration / 0.4),
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+      // Fade in at start
+      gsap.to(flower, {
+        opacity: 0.9 + Math.random() * 0.1,
+        duration: 0.5,
+        ease: 'power2.out'
+      });
+
+      // Fade out near bottom
+      gsap.to(flower, {
+        opacity: 0,
+        delay: duration - 1.5,
+        duration: 1.5,
+        ease: 'power2.in'
+      });
+    };
+
+    // Initial burst
+    for (let i = 0; i < 20; i++) {
+      setTimeout(() => createFlower(), i * 80);
+    }
+
+    // Continuous rain with bursts
+    flowerIntervalRef.current = setInterval(() => {
+      createFlower();
+
+      // Random bursts
+      if (Math.random() > 0.65) {
+        setTimeout(() => createFlower(), 100);
+        setTimeout(() => createFlower(), 200);
+        if (Math.random() > 0.8) {
+          setTimeout(() => createFlower(), 300);
+        }
+      }
+    }, 250);
+
+    return () => {
+      if (flowerIntervalRef.current) {
+        clearInterval(flowerIntervalRef.current);
+      }
+      if (container) {
+        container.innerHTML = container.innerHTML.replace(/<div class="absolute pointer-events-none".*?<\/div>/g, '');
+      }
+    };
+  }, [isLoaded]);
 
   // Cinema mode with advanced animations
   useEffect(() => {
@@ -306,7 +414,6 @@ const PhotoGallery = () => {
         clearInterval(cinemaIntervalRef.current);
         cinemaIntervalRef.current = null;
       }
-      // schedule the state update asynchronously to avoid cascading renders
       Promise.resolve().then(() => setShowCinemaOverlay(false));
       return;
     }
@@ -324,76 +431,30 @@ const PhotoGallery = () => {
       const categoryEl = cinemaContainer.querySelector('.cinema-category');
       const overlay = cinemaContainer.querySelector('.cinema-overlay');
 
-      // Reset for new animation (guard set in case the method is optional)
       if (typeof gsap.set === 'function') {
         gsap.set([img, titleEl, categoryEl], { clearProps: 'all' });
       }
 
-      // Entrance Animation - Image zooms from center with rotation
       gsap.fromTo(img,
-        {
-          scale: 0.3,
-          rotation: -15,
-          opacity: 0,
-          filter: 'blur(20px) brightness(0.5)'
-        },
-        {
-          scale: 1,
-          rotation: 0,
-          opacity: 1,
-          filter: 'blur(0px) brightness(1)',
-          duration: 1.2,
-          ease: 'power3.out'
-        }
+        { scale: 0.3, rotation: -15, opacity: 0, filter: 'blur(20px) brightness(0.5)' },
+        { scale: 1, rotation: 0, opacity: 1, filter: 'blur(0px) brightness(1)', duration: 1.2, ease: 'power3.out' }
       );
 
-      // Category badge slides in from top
       gsap.fromTo(categoryEl,
-        {
-          y: -100,
-          opacity: 0,
-          scale: 0.5
-        },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.8,
-          delay: 0.5,
-          ease: 'back.out(1.7)'
-        }
+        { y: -100, opacity: 0, scale: 0.5 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.8, delay: 0.5, ease: 'back.out(1.7)' }
       );
 
-      // Title slides in from bottom with elegant fade
       gsap.fromTo(titleEl,
-        {
-          y: 100,
-          opacity: 0,
-          scale: 0.9
-        },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.9,
-          delay: 0.7,
-          ease: 'power3.out'
-        }
+        { y: 100, opacity: 0, scale: 0.9 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.9, delay: 0.7, ease: 'power3.out' }
       );
 
-      // Overlay fade in
       gsap.fromTo(overlay,
-        {
-          opacity: 0
-        },
-        {
-          opacity: 1,
-          duration: 0.6,
-          delay: 0.3
-        }
+        { opacity: 0 },
+        { opacity: 1, duration: 0.6, delay: 0.3 }
       );
 
-      // Continuous subtle animations while displaying
       gsap.to(img, {
         scale: 1.05,
         duration: 3,
@@ -403,7 +464,6 @@ const PhotoGallery = () => {
         repeat: 1
       });
 
-      // Exit animation before next image
       setTimeout(() => {
         gsap.to([img, titleEl, categoryEl, overlay], {
           opacity: 0,
@@ -418,10 +478,8 @@ const PhotoGallery = () => {
       }, 5400);
     };
 
-    // Start animation immediately when currentImageIndex changes
     animateCinemaImage();
 
-    // Auto-advance every 6 seconds
     cinemaIntervalRef.current = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
     }, 6000);
@@ -432,6 +490,7 @@ const PhotoGallery = () => {
       }
     };
   }, [isCinemaMode, isPlaying, currentImageIndex, images.length]);
+
   useEffect(() => {
     if (!isLoaded || !window.gsap) return;
 
@@ -439,20 +498,8 @@ const PhotoGallery = () => {
 
     gsap.fromTo(
       itemRefs.current,
-      {
-        opacity: 0,
-        y: 60,
-        scale: 0.95
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        stagger: 0.08,
-        ease: 'power3.out',
-        clearProps: 'all'
-      }
+      { opacity: 0, y: 60, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.08, ease: 'power3.out', clearProps: 'all' }
     );
 
     itemRefs.current.forEach((item) => {
@@ -464,44 +511,16 @@ const PhotoGallery = () => {
 
       item.addEventListener('mouseenter', () => {
         if (isCinemaMode) return;
-
-        gsap.to(img, {
-          scale: 1.05,
-          duration: 0.7,
-          ease: 'power2.out'
-        });
-        gsap.to(overlay, {
-          opacity: 1,
-          duration: 0.4,
-          ease: 'power2.out'
-        });
-        gsap.to(content, {
-          y: 0,
-          opacity: 1,
-          duration: 0.4,
-          ease: 'power2.out'
-        });
+        gsap.to(img, { scale: 1.05, duration: 0.7, ease: 'power2.out' });
+        gsap.to(overlay, { opacity: 1, duration: 0.4, ease: 'power2.out' });
+        gsap.to(content, { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' });
       });
 
       item.addEventListener('mouseleave', () => {
         if (isCinemaMode) return;
-
-        gsap.to(img, {
-          scale: 1,
-          duration: 0.7,
-          ease: 'power2.out'
-        });
-        gsap.to(overlay, {
-          opacity: 0,
-          duration: 0.4,
-          ease: 'power2.out'
-        });
-        gsap.to(content, {
-          y: 20,
-          opacity: 0,
-          duration: 0.4,
-          ease: 'power2.out'
-        });
+        gsap.to(img, { scale: 1, duration: 0.7, ease: 'power2.out' });
+        gsap.to(overlay, { opacity: 0, duration: 0.4, ease: 'power2.out' });
+        gsap.to(content, { y: 20, opacity: 0, duration: 0.4, ease: 'power2.out' });
       });
     });
   }, [isLoaded, isCinemaMode]);
@@ -514,35 +533,16 @@ const PhotoGallery = () => {
 
     if (!modal) return;
 
-    gsap.fromTo(
-      modal,
-      {
-        opacity: 0,
-        scale: 0.8
-      },
-      {
-        opacity: 1,
-        scale: 1,
-        duration: 0.35,
-        ease: 'power3.out'
-      }
+    gsap.fromTo(modal,
+      { opacity: 0, scale: 0.8 },
+      { opacity: 1, scale: 1, duration: 0.35, ease: 'power3.out' }
     );
 
     const img = modal.querySelector('img');
     if (!img) return;
-    gsap.fromTo(
-      img,
-      {
-        scale: 0.9,
-        opacity: 0
-      },
-      {
-        scale: 1,
-        opacity: 1,
-        duration: 0.5,
-        delay: 0.1,
-        ease: 'power2.out'
-      }
+    gsap.fromTo(img,
+      { scale: 0.9, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.5, delay: 0.1, ease: 'power2.out' }
     );
   }, [selectedImage, isLoaded]);
 
@@ -597,14 +597,9 @@ const PhotoGallery = () => {
       ease: 'power2.in',
       onComplete: () => {
         setSelectedImage(images[newIndex]);
-        gsap.fromTo(
-          img,
-          {
-            x: direction === 'next' ? 100 : -100, opacity: 0
-          },
-          {
-            x: 0, opacity: 1, duration: 0.3, ease: 'power2.out'
-          }
+        gsap.fromTo(img,
+          { x: direction === 'next' ? 100 : -100, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }
         );
       }
     });
@@ -643,7 +638,6 @@ const PhotoGallery = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 py-16 px-4 sm:px-6 lg:px-8">
-      {/* Control Buttons */}
       <div className="fixed top-6 right-6 z-50 flex gap-3">
         <button
           onClick={toggleMusic}
@@ -664,62 +658,49 @@ const PhotoGallery = () => {
         </button>
       </div>
 
-      {/* Cinema Mode Overlay - Full Screen Movie Presentation */}
       {isCinemaMode && showCinemaOverlay && (
         <div className="fixed inset-0 z-40 bg-black/98 backdrop-blur-xl">
           <div ref={cinemaImageRef} className="relative w-full h-full flex items-center justify-center p-4">
-            {/* Animated Background Gradient */}
             <div className="absolute inset-0 bg-gradient-radial from-blue-900/20 via-transparent to-black opacity-50"></div>
 
-            {/* Decorative Light Rays */}
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute top-0 left-1/4 w-1 h-full bg-gradient-to-b from-blue-500/30 via-transparent to-transparent transform -skew-x-12 blur-sm"></div>
               <div className="absolute top-0 right-1/4 w-1 h-full bg-gradient-to-b from-purple-500/30 via-transparent to-transparent transform skew-x-12 blur-sm"></div>
             </div>
 
-            {/* Main Image Container */}
             <div className="relative max-w-6xl w-full h-full flex flex-col items-center justify-center">
-              {/* Image with Cinematic Frame */}
               <div className="cinema-img relative w-full h-full aspect-video rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10">
-                <Image
+                <img
                   src={currentImage.url}
                   alt={currentImage.title}
-                  fill
-                  className="object-contain"
-                  priority
+                  className="w-full h-full object-contain"
                 />
 
-                {/* Vignette Effect */}
                 <div className="cinema-overlay absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-black/60 pointer-events-none"></div>
 
-                {/* Film Grain Texture */}
                 <div className="absolute inset-0 opacity-5 pointer-events-none"
                   style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' /%3E%3C/svg%3E")' }}>
                 </div>
               </div>
 
-              {/* Title - Bottom Center with Elegant Typography */}
               <div className="cinema-title absolute bottom-20 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-2">
                 <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent backdrop-blur-lg rounded-xl p-6 border-t-2 border-white/20 shadow-2xl">
                   <h2 className="text-white text-lg md:text-xl font-bold text-center tracking-tight leading-tight drop-shadow-xl">
                     {currentImage.title}
                   </h2>
 
-                  {/* Progress Bar */}
                   <div className="mt-8 w-full h-1 bg-white/20 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-progress"
                       style={{ animation: 'progress 6s linear' }}>
                     </div>
                   </div>
 
-                  {/* Image Counter */}
                   <p className="text-white/60 text-center mt-4 text-lg font-medium tracking-wider">
                     {currentImage.verse}
                   </p>
                 </div>
               </div>
 
-              {/* Corner Ornaments */}
               <div className="absolute top-12 left-12 w-16 h-16 border-l-4 border-t-4 border-blue-500/50 rounded-tl-lg"></div>
               <div className="absolute top-12 right-12 w-16 h-16 border-r-4 border-t-4 border-purple-500/50 rounded-tr-lg"></div>
               <div className="absolute bottom-12 left-12 w-16 h-16 border-l-4 border-b-4 border-blue-500/50 rounded-bl-lg"></div>
@@ -730,7 +711,6 @@ const PhotoGallery = () => {
       )}
 
       <div className={`max-w-[1600px] mx-auto transition-opacity duration-500 ${isCinemaMode ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-        {/* Header */}
         <div className="mb-16 max-w-3xl">
           <div className="inline-block px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full mb-6">
             <span className="text-blue-400 text-sm font-medium tracking-wide">THROUGH THE LENS OF FAITH</span>
@@ -744,7 +724,78 @@ const PhotoGallery = () => {
           </p>
         </div>
 
-        {/* Masonry Grid */}
+        {/* Thankfulness Section with Raining Flowers */}
+        <div ref={thanksRef} className="relative mb-20 overflow-hidden rounded-3xl bg-gradient-to-br from-purple-900/40 via-pink-900/30 to-rose-900/40 border border-white/10 backdrop-blur-sm shadow-2xl">
+          <div className="relative z-10 px-8 py-20 md:px-16 md:py-28">
+            <div className="text-center max-w-4xl mx-auto">
+              <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-500/20 border border-pink-400/40 rounded-full mb-10 shadow-lg backdrop-blur-md">
+                <span className="text-3xl">🙏</span>
+                <span className="text-pink-300 text-sm font-bold tracking-widest uppercase">With Grateful Hearts</span>
+                <span className="text-3xl">✨</span>
+              </div>
+
+              <h2 className="text-5xl md:text-7xl font-extrabold mb-10 leading-tight">
+                <span className="block bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl">
+                  Thank You
+                </span>
+                <span className="block text-white mt-3 drop-shadow-lg">
+                  For Celebrating With Us
+                </span>
+              </h2>
+
+              <div className="mb-12 space-y-6">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-500/20 rounded-3xl blur-2xl"></div>
+                  <p className="relative text-2xl md:text-3xl text-white/95 font-light italic leading-relaxed px-6 py-4">
+                    &ldquo;I thank my God every time I remember you. In all my prayers for all of you,
+                    I always pray with joy because of your partnership in the gospel.&rdquo;
+                  </p>
+                </div>
+                <p className="text-xl text-pink-300 font-semibold tracking-wide">
+                  — Philippians 1:3-5
+                </p>
+              </div>
+
+              <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-10 md:p-12 border border-white/20 shadow-2xl">
+                <p className="text-xl md:text-2xl text-neutral-100 leading-relaxed mb-8">
+                  Your presence at our <span className="text-pink-300 font-semibold">Apostle Celebration</span> has filled our hearts with joy and gratitude.
+                  Like flowers that bloom in abundance, your love and support beautify our ministry and bring color to our lives.
+                </p>
+                <p className="text-xl md:text-2xl text-neutral-200 leading-relaxed mb-10">
+                  Each one of you is a blessing, a precious gift from God. We are deeply thankful for your faithfulness,
+                  your prayers, and the love you have shown us throughout this journey.
+                </p>
+
+                <div className="flex items-center justify-center my-10">
+                  <div className="h-px w-24 bg-gradient-to-r from-transparent via-pink-400 to-transparent"></div>
+                  <div className="mx-6 flex gap-3">
+                    <span className="text-pink-300 text-3xl">❀</span>
+                    <span className="text-purple-300 text-3xl">✿</span>
+                    <span className="text-blue-300 text-3xl">✾</span>
+                  </div>
+                  <div className="h-px w-24 bg-gradient-to-r from-transparent via-pink-400 to-transparent"></div>
+                </div>
+
+                <div className="bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-blue-500/10 rounded-2xl p-8 border border-pink-400/30">
+                  <p className="text-lg md:text-xl text-white font-light italic leading-relaxed mb-4">
+                    &ldquo;The Lord bless you and keep you; the Lord make his face shine on you
+                    and be gracious to you; the Lord turn his face toward you and give you peace.&rdquo;
+                  </p>
+                  <p className="text-purple-300 font-semibold text-base">— Numbers 6:24-26</p>
+                </div>
+
+                <div className="mt-10">
+                  <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-200 via-purple-200 to-blue-200 bg-clip-text text-transparent">
+                    May God&apos;s richest blessings be upon you!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/30 to-transparent pointer-events-none"></div>
+        </div>
+
         <div
           ref={galleryRef}
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-[240px] gap-4"
@@ -758,11 +809,10 @@ const PhotoGallery = () => {
               className={`relative group cursor-pointer rounded-xl overflow-hidden shadow-xl ${image.span} bg-neutral-900 transition-all duration-500`}
               onClick={() => handleImageClick(image)}
             >
-              <Image
+              <img
                 src={image.url}
                 alt={image.title}
-                fill
-                className="object-cover transition-transform duration-700"
+                className="w-full h-full object-cover transition-transform duration-700"
               />
 
               <div className="overlay absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 transition-opacity duration-400">
@@ -779,7 +829,6 @@ const PhotoGallery = () => {
           ))}
         </div>
 
-        {/* Modal */}
         {selectedImage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/97 p-4 backdrop-blur-sm">
             <div ref={modalRef} className="relative max-w-7xl w-full">
@@ -805,26 +854,35 @@ const PhotoGallery = () => {
 
               <div className="bg-neutral-900/50 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                 <div className="relative w-full h-[70vh]">
-                  <Image
+                  <img
                     src={selectedImage.url}
                     alt={selectedImage.title}
-                    fill
-                    className="object-contain"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 <div className="p-8 bg-gradient-to-t from-neutral-900 to-neutral-900/80 backdrop-blur-sm">
                   <span className="inline-block px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium rounded-lg mb-4 tracking-wide">
                     {selectedImage.category}
                   </span>
-                  <h2 className="text-white text-3xl md:text-4xl font-bold tracking-tight">
+                  <h2 className="text-white text-3xl md:text-4xl font-bold tracking-tight mb-4">
                     {selectedImage.title}
                   </h2>
+                  <p className="text-neutral-300 text-lg italic">
+                    {selectedImage.verse}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        @keyframes progress {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+      `}</style>
     </div>
   );
 };
